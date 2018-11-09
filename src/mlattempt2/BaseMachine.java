@@ -18,7 +18,9 @@ import javax.swing.SwingUtilities;
  *
  * @author voice
  */
-public class MLAttempt2 extends JFrame{
+public class BaseMachine extends JFrame{
+    
+
     public static String[] smalloperators = new String[]{
             "(digit)",
             "(NothingOne)",
@@ -168,7 +170,7 @@ public class MLAttempt2 extends JFrame{
             + "(:1000) 2 (-100T) (-1000000T) 2 0.5 (:990) ((genN>523865525)?_(:-10000000)_;_(ex2)) "
             + "(:10) (100000T) (:-30000999) (-1000000T) (100T) (:-9990000) (-100T) (-1000000T) "
             + "(:-2000) (1000000T) (:-2) ((genN<992044306)?_(:-10)_;_(:-10000)) (:-1003) (-1000000T)";
-    public MLAttempt2(){
+    public BaseMachine(){
         SwingUtilities.invokeLater(new Runnable(){
             @Override
             public void run() {
@@ -442,7 +444,7 @@ public class MLAttempt2 extends JFrame{
      */
     public static void restart(){
         System.out.println("\nRESTART\n");
-        generators = new Generator[5];
+        generators = new Generator[const3];
         int sent = 0;
         //Sometimes engage in a 'fight' of the 'fittest'.
         //Rarely 'nuke' if there are more than three items, always >6.
@@ -466,14 +468,40 @@ public class MLAttempt2 extends JFrame{
         
     }
     
+    public static int getReward(){
+        return absmax;
+    }
     
-    public static void main(String[] args) {
+    public static boolean isRunning(){
+        return run || runs > 0;
+    }
+    
+    public static int const3 = 5;
+    public static int const1 = 2;
+    public static int const2 = 2;
+    public static boolean run = false;
+    public static int runs = 0;
+    public static boolean disp = false;
+    
+    public static void kill(){
+        maxindex = 0;
+        max = 0;
+        absmax = 0;
+        run = false;
+        runs = 0;
+        archives.clear();
+        rt.setVisible(false);
+        rt.dispose();
+        rt = null;
+    }
+    public static BaseMachine rt;
+    public static void go(){
         String stringin = makeTree(2);
-        System.out.println(stringin);
-        System.out.println(handleConditional(stringin, 1740199905));
+        //System.out.println(stringin);
+        //System.out.println(handleConditional(stringin, 1740199905));
         
         
-        MLAttempt2 rt = new MLAttempt2();
+        rt = new BaseMachine();
         rt.setSize(500, 400);
         rt.setResizable(true);
         textOutputFrame = new JTextArea("3");
@@ -509,7 +537,8 @@ public class MLAttempt2 extends JFrame{
         String temp2 = "";
         String[] sarrtemp;
         restart();
-        while (true){
+        while (run || runs > 0){
+            if (runs > 0) runs--;
             if (max < absmax/2 && bigflop > 1999){
                 System.out.println("TRASHCOMPACTOR");
                 archives.add(" " + Math.random());
@@ -527,7 +556,7 @@ public class MLAttempt2 extends JFrame{
             }
             if (bigflop >= 10000){
                 System.out.println("?: " + max +" "+ absmax);
-                System.out.println(bigflop);
+                //System.out.println(bigflop);
                 archives.add(generators[maxindex].commands);
                 flop = 0;
                 bigflop = 0;
@@ -543,6 +572,7 @@ public class MLAttempt2 extends JFrame{
             } else {
                 bigflop++;
             }
+            maxindex = 0;
             
             //Determine rewards.
             //if (flop == 99) System.out.println();
@@ -581,7 +611,7 @@ public class MLAttempt2 extends JFrame{
                 generators[i].commands = generators[i].commands.replace("(-T^3) (T^3) ", "  ");
                 generators[i].commands = generators[i].commands.replace("(exInfinity) ", "  ");
                 
-                if (flop == 999) 
+                if (flop == 999 && disp) 
                     System.out.println(generators[i].commands);
                 generators[i].reward = 0;
                 
@@ -634,7 +664,6 @@ public class MLAttempt2 extends JFrame{
                 
                 
                 
-                //if (flop == 99) System.out.println(generators[i].reward);
                 if (generators[i].reward > max){
                     max = generators[i].reward;
                     maxindex = i;
@@ -646,7 +675,7 @@ public class MLAttempt2 extends JFrame{
             
             outemp = "";
             //if (flop == 99) System.out.println();
-            if (flop >= 999){
+            if (flop >= 999 && disp){
                 for (int i = 0; i < winners.length; i++){
                     System.out.println("WINNER:\t" + winners[i] + "\tDATE: " + dates[i]);
                     outemp = outemp + "WINNER:\t" + winners[i] + "\tDATE: " + dates[i] + "\n";
@@ -661,6 +690,8 @@ public class MLAttempt2 extends JFrame{
                 System.out.println("Max: " + "\t\t" +currentVal +" "+ generators[maxindex].commands);
                 outemp = outemp + "Max: " + "\t\t" +currentVal +" "+ generators[maxindex].commands + "\n";
                 System.out.println("Max Reward: " + max);
+                
+                
                 textOutputFrame.append(outemp);
                 
                 inttemp = 0;
@@ -668,7 +699,8 @@ public class MLAttempt2 extends JFrame{
                     if (s.length() > inttemp) inttemp = s.length();
                 }
                 textOutputFrame.setPreferredSize(new Dimension(inttemp*40, 20*(textOutputFrame.getText().length()-textOutputFrame.getText().replaceAll("\n", "").length())));
-
+                
+                
                 flop = 0;
                 
             } else {
@@ -684,14 +716,16 @@ public class MLAttempt2 extends JFrame{
                 }
                 if (i != maxindex){
                     if (generators[i].commands.equals(generators[maxindex].commands)){
-
+                        for (int g = 0; g < const2; g++){
                             if (r.nextBoolean()) generators[i].smutate();
                             else generators[i].commands = generators[i].commands + " " + makeSTree((int) (Math.random()*6)) + " ";
-             
+                        }
                     } else {
-                        if (r.nextBoolean()) generators[i].commands = generators[i].commands + " " + makeTree((int) (Math.random()*6)) + " ";
-                        if (r.nextBoolean()) generators[i].intermutate();
-                        if (r.nextBoolean()) generators[i].delmutate();
+                        for (int g = 0; g < const1; g++){
+                            if (r.nextBoolean()) generators[i].commands = generators[i].commands + " " + makeTree((int) (Math.random()*6)) + " ";
+                            if (r.nextBoolean()) generators[i].intermutate();
+                            if (r.nextBoolean()) generators[i].delmutate();
+                        }
                     }
                 }
             }
