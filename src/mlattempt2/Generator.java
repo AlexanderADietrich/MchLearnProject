@@ -9,7 +9,7 @@ package mlattempt2;
  *
  * @author voice
  */
-public class GeneratorII {
+public class Generator {
         public BaseMachineII bm2;
         public String commands;
         public long[] vals;
@@ -17,7 +17,7 @@ public class GeneratorII {
         public int reward;
         public boolean changed;
         public int ginttemp;
-        public GeneratorII(BaseMachineII bm2){
+        public Generator(BaseMachineII bm2){
             this.bm2=bm2;
             vals = new long[bm2.dates.length];
             commands = "";
@@ -29,7 +29,7 @@ public class GeneratorII {
                 this.mutate();
             commands = commands + " " +  bm2.makeSmartTree(6) + " ";
         }
-        public GeneratorII(BaseMachineII bm2, int n){
+        public Generator(BaseMachineII bm2, int n){
             this.bm2=bm2;
             vals = new long[bm2.dates.length];
             commands = "";
@@ -41,7 +41,7 @@ public class GeneratorII {
             }
             commands = commands + " " +  bm2.makeSmartTree(6) + " ";
         }
-        public GeneratorII(BaseMachineII bm2, String s){
+        public Generator(BaseMachineII bm2, String s){
             this.bm2=bm2;
             vals = new long[bm2.dates.length];
             changed = true;
@@ -177,7 +177,7 @@ public class GeneratorII {
         
         public void update(){
             for (int i = 0; i < bm2.dates.length; i++){
-                vals[i] = getValDate(bm2.dates[i]);
+                vals[i] = getValDateMonth(bm2.dates[i], bm2.months[i]);
             }
             changed = false;
         }
@@ -197,8 +197,7 @@ public class GeneratorII {
             }
         }
         
-        
-        public long getValDate(long date){ 
+        public long getValDateMonth(long date, long month){ 
            
             Long current = 0L;
             //System.out.println("\n" + commands);
@@ -208,13 +207,21 @@ public class GeneratorII {
                 if (s.contains("y") && s.contains("#")){
                     s = bm2.handleSmartTree(current, s);
                 }
-
-                if (s.equals("(T)")){
+                
+                if (s.equals("(M)")){
+                    current = current + month;
+                }
+                else if (s.equals("(T)")){
                     current = current + date;
-                } else if (s.equals("(2^(sqrtT))")){
-                    current = current + (long) Math.pow(2, Math.sqrt(date));
-                } else if (s.equals("(1.3^(sqrt(10000-T))")){
-                    current = current + (long) Math.pow(1.3, Math.sqrt(10000-date));
+                    
+                } else if (s.equals("(2^M)")){
+                    current = current + (long) Math.pow(2, month);
+                } else if (s.equals("(2^T)")){
+                    current = current + (long) Math.pow(2, date);
+                } else if (s.equals("(1.3^(100-T)")){
+                    current = current + (long) Math.pow(1.3, 100-date);
+                } else if (s.equals("(1.3^(100-M)")){
+                    current = current + (long) Math.pow(1.3, 100-month);
                 } else if (s.equals("(antidigit)")){
                     current = current / 10L;
                 } else if (s.equals("(antidigit2)")){
@@ -249,6 +256,32 @@ public class GeneratorII {
                     current = current + (date/100L);
                 } else if (s.equals("(-/100T)")){
                     current = current - (date/100L);
+                } else if (s.equals("(-M)")){
+                    current = current - month;
+                } else if (s.equals("(100M)")){
+                    current = current + (month*100L);
+                } else if (s.equals("(-100M)")){
+                    current = current - (month*100L);
+                } else if (s.equals("(1000M)")){
+                    current = current + (month*1000L);
+                } else if (s.equals("(-1000M)")){
+                    current = current - (month*1000L);
+                } else if (s.equals("(10000M)")){
+                    current = current + (month*10000L);
+                } else if (s.equals("(-10000M)")){
+                    current = current - (month*10000L);
+                } else if (s.equals("(100000M)")){
+                    current = current + (month*100000L);
+                } else if (s.equals("(-100000M)")){
+                    current = current - (month*100000L);
+                } else if (s.equals("(1000000M)")){
+                    current = current + (month*1000000L);
+                } else if (s.equals("(-1000000M)")){
+                    current = current - (month*1000000L);
+                } else if (s.equals("(/100M)")){
+                    current = current + (month/100L);
+                } else if (s.equals("(-/100M)")){
+                    current = current - (month/100L);
                 } else if (s.equals("(sqrt)")){
                     current = (long) Math.sqrt(current);
                 } else if (s.equals("(ex2)")){
@@ -257,6 +290,10 @@ public class GeneratorII {
                     current = current + (date*date*date);
                 } else if (s.equals("(-T^3)")){
                     current = current - (date*date*date);
+                } else if (s.equals("(M^3)")){
+                    current = current + (month*month*month);
+                } else if (s.equals("(-M^3)")){
+                    current = current - (month*month*month);
                 } else if (s.equals("(0.5)")){
                     current = current/2L;
                 } else if (s.equals("(2)")) {

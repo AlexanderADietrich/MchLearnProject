@@ -5,37 +5,32 @@
  */
 package mlattempt2;
 
+
 /**
  *
  * @author voice
  */
 public class Launcher {
-    /*public static void main(String[] args){
-        ConstantOptimizer c1 = new ConstantOptimizer();
-        //ConstantOptimizer c2 = new ConstantOptimizer();
-        //ConstantOptimizer c3 = new ConstantOptimizer();
-        //ConstantOptimizer c4 = new ConstantOptimizer();
+    public static void main(String[] args){
+        ConstantOptimizerII copti = new ConstantOptimizerII();
+        copti.run(10);
         
         
         
-        Thread t1 = new Thread(c1);
-        //Thread t2 = new Thread(c2);
-        //Thread t3 = new Thread(c3);
-        //Thread t4 = new Thread(c4);
-        
-        
-        t1.start();
-        //t2.start();
-        //t3.start();
-        //t4.start();
-        
-        long temp = System.currentTimeMillis();
-        while (true){
-            if (System.currentTimeMillis()-temp > 1000*10){
-                System.out.println("LAUNCHER " + (c1.getCurrent() == null));
-                if (c1.getCurrent() != null) System.out.println(c1.getCurrent().absmaxstring);
-                temp = System.currentTimeMillis();
-            }
+        String[] bests = new String[10];
+        BaseMachineII machine;
+        for (int i = 0; i < bests.length; i++){
+            machine = new BaseMachineII();
+            machine.setConsts(copti.bestConsts);
+            machine.run(1000);
+            bests[i] = machine.absmaxstring;
         }
-    }*/
+        machine = new BaseMachineII();
+        machine.setConsts(copti.bestConsts);
+        for (int i = 0; i < machine.generators.length; i++){
+            System.out.println(bests[i]);
+            machine.generators[i] = new GeneratorII(machine, bests[i]);
+        }
+        machine.run(100);
+    }
 }
