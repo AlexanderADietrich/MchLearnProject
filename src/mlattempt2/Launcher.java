@@ -12,24 +12,24 @@ package mlattempt2;
  */
 public class Launcher {
     public static void main(String[] args){
-        ConstantOptimizerII copti = new ConstantOptimizerII();
+        ConstantOptimizer copti = new ConstantOptimizer();
         copti.run(10);
         
         
         
         String[] bests = new String[10];
-        BaseMachineII machine;
+        BaseMachine machine;
         for (int i = 0; i < bests.length; i++){
-            machine = new BaseMachineII();
+            machine = new BaseMachine();
             machine.setConsts(copti.bestConsts);
             machine.run(1000);
             bests[i] = machine.absmaxstring;
         }
-        machine = new BaseMachineII();
+        machine = new BaseMachine();
         machine.setConsts(copti.bestConsts);
         for (int i = 0; i < machine.generators.length; i++){
             System.out.println(bests[i]);
-            machine.generators[i] = new GeneratorII(machine, bests[i]);
+            machine.generators[i] = new Generator(machine, bests[i]);
         }
         machine.run(100);
     }

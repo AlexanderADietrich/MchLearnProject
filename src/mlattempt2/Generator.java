@@ -10,14 +10,14 @@ package mlattempt2;
  * @author voice
  */
 public class Generator {
-        public BaseMachineII bm2;
+        public BaseMachine bm2;
         public String commands;
         public long[] vals;
         public String[] arrtemp;
         public int reward;
         public boolean changed;
         public int ginttemp;
-        public Generator(BaseMachineII bm2){
+        public Generator(BaseMachine bm2){
             this.bm2=bm2;
             vals = new long[bm2.dates.length];
             commands = "";
@@ -29,7 +29,7 @@ public class Generator {
                 this.mutate();
             commands = commands + " " +  bm2.makeSmartTree(6) + " ";
         }
-        public Generator(BaseMachineII bm2, int n){
+        public Generator(BaseMachine bm2, int n){
             this.bm2=bm2;
             vals = new long[bm2.dates.length];
             commands = "";
@@ -41,7 +41,7 @@ public class Generator {
             }
             commands = commands + " " +  bm2.makeSmartTree(6) + " ";
         }
-        public Generator(BaseMachineII bm2, String s){
+        public Generator(BaseMachine bm2, String s){
             this.bm2=bm2;
             vals = new long[bm2.dates.length];
             changed = true;

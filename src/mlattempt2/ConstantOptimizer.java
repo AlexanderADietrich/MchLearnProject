@@ -5,7 +5,7 @@ import java.util.Random;
 
 
 public class ConstantOptimizer {
-    public BaseMachineII[] arr;
+    public BaseMachine[] arr;
     
     public int[] bestConsts;
     
@@ -16,9 +16,9 @@ public class ConstantOptimizer {
     
     public ConstantOptimizer(){
         r = new Random();
-        arr = new BaseMachineII[10];
+        arr = new BaseMachine[10];
         for (int i = 0; i < arr.length; i++){
-            arr[i] = new BaseMachineII();
+            arr[i] = new BaseMachine();
             arr[i].disp = false;
             arr[i].genConsts();
         }
@@ -56,12 +56,12 @@ public class ConstantOptimizer {
                         arr[i].disp=false;
                     }
                     for (int b = 0; b < 5; b++){
-                        int index = r.nextInt(BaseMachineII.constslen);
+                        int index = r.nextInt(BaseMachine.constslen);
                         arr[i].consts[index] = arr[i].consts[index] + ((r.nextBoolean()) ? 1 : -1);
                         if (arr[i].consts[index] < 0) arr[i].consts[index] = 0;
                     }
                 } else {
-                    arr[i] = new BaseMachineII();
+                    arr[i] = new BaseMachine();
                     arr[i].disp=false;
                     arr[i].consts = bestConsts;
                 }
@@ -70,8 +70,8 @@ public class ConstantOptimizer {
         }
     }
     
-    public BaseMachineII combine(BaseMachineII bmch, BaseMachineII bmch2){
-        int[] newconsts = new int[BaseMachineII.constslen];
+    public BaseMachine combine(BaseMachine bmch, BaseMachine bmch2){
+        int[] newconsts = new int[BaseMachine.constslen];
         
         /*
         More accurate than previously to how genetics work (gene replacement
@@ -86,7 +86,7 @@ public class ConstantOptimizer {
         }
         
         
-        BaseMachineII retVal = new BaseMachineII();
+        BaseMachine retVal = new BaseMachine();
         retVal.setConsts(newconsts);
         return retVal;
     }
