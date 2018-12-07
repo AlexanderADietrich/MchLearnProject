@@ -12,8 +12,12 @@ package mlattempt2;
  */
 public class Launcher {
     public static void main(String[] args){
-        ConstantOptimizer copti = new ConstantOptimizer();
-        copti.run(10);
+        
+        NeuralNetwork n = new NeuralNetwork();
+        n.run();
+        /*ConstantOptimizer copti = new ConstantOptimizer();
+        copti.bestConsts = new int[]{5, 1, 1, 5, 1, 3};
+        //The constant optimizer is slow and unreliable right now.
         
         
         
@@ -22,15 +26,16 @@ public class Launcher {
         for (int i = 0; i < bests.length; i++){
             machine = new BaseMachine();
             machine.setConsts(copti.bestConsts);
-            machine.run(1000);
+            machine.run(1000, 100);
             bests[i] = machine.absmaxstring;
         }
         machine = new BaseMachine();
         machine.setConsts(copti.bestConsts);
+        machine.generators = new Generator[10];
         for (int i = 0; i < machine.generators.length; i++){
             System.out.println(bests[i]);
             machine.generators[i] = new Generator(machine, bests[i]);
         }
-        machine.run(100);
+        machine.run(10000, 100);*/
     }
 }

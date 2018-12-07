@@ -22,7 +22,7 @@ public class BaseMachine {
     
     public Generator[] generators;
     
-    public static final int constslen = 7;
+    public static final int constslen = 6;
     
     public void setConsts(int[] list){
         consts = list;
@@ -375,14 +375,13 @@ public class BaseMachine {
      * processes in a digital environment.
      * @param times the number of times to be run.
      */
-    public void run(int times){
+    public void run(int times, int maxSame){
         int sent = -1;
+        int numSame = 0;
         while (++sent < times){
             if (disp) System.out.println("Run " + sent + " HighestLen " + absmaxstring.split(" ").length);
             
             //Determine reward, max, and absmax.
-            String secondbest = "";
-            
             String temp = maxstring;
             int sent2 = 0;
             for (Generator gen : generators){
@@ -390,7 +389,6 @@ public class BaseMachine {
                 if (gen.reward > max){
                     max = gen.reward;
                     maxindex = sent2;
-                    secondbest = maxstring;
                     maxstring = gen.commands;
                 }
                 if (gen.reward > absmax){
@@ -399,19 +397,27 @@ public class BaseMachine {
                 }
                 sent2++;
             }
+            if (maxstring.equals(temp)) numSame++;
+            else numSame = 0;
+            if (numSame == maxSame) break;
 
-            //Only combine good, mutate
             for (int i = 0; i < generators.length; i++){
-                if (generators[i].reward < max/2){
-                    generators[i] = combine(secondbest, maxstring);
+                if (i != maxindex && r.nextBoolean()){
+                    if (i == generators.length-1){
+                        generators[i] = combine(generators[i], generators[0]);
+                    }
+                    else {
+                        generators[i] = combine(generators[i], generators[i+1]);   
+                    }
                 }
+                
                 if (generators[i].reward < max){
-                    for (int b = 0; b < consts[6]; b++){
+                    for (int b = 0; b < 5; b++){
                         int decision = r.nextInt(consts[0]+consts[1]+consts[2]+consts[3]+consts[4]+consts[5]);
                         if      (decision > consts[1]+consts[2]+consts[3]+consts[4]+consts[5]) generators[i].mutate();
                         else if (decision > consts[2]+consts[3]+consts[4]+consts[5]) generators[i].intermutate();
                         else if (decision > consts[3]+consts[4]+consts[5]) generators[i].delmutate();
-                        else if (decision > consts[4]+consts[5]) generators[i].addTree(r.nextInt(10));
+                        else if (decision > consts[4]+consts[5]) generators[i].addTree(r.nextInt(5));
                         else if (decision > consts[5]) generators[i].mutateTreeOperators();
                         else if (decision >= 0) generators[i].shiftTree();
                     }
@@ -461,15 +467,7 @@ public class BaseMachine {
                 temp = temp + arrtemp2[sent++] + " ";
             }
         }
-        while (sent < maxlen){
-            if (sent < arrtemp1.length){
-                temp = temp + arrtemp1[sent++] + " ";
-            } else {
-                temp = temp + arrtemp2[sent++] + " ";
-            }
-        }
         Generator retVal = new Generator(this, temp);
-        retVal.delmutate(maxlen-minlen);
         return retVal;
     }
     /**
@@ -523,7 +521,7 @@ public class BaseMachine {
 
             if (test[c] == currentVal){
                 //System.out.println("L11 of detReward(...) of BaseMachineII");
-                retVal+= 10000;
+                retVal+= 100000;
             }
         }
         return retVal;

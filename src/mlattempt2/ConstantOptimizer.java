@@ -32,16 +32,16 @@ public class ConstantOptimizer {
             int[] temp = bestConsts;
             //Determine Rewards
             for (int i = 0; i < arr.length; i++){
-                System.out.println("COpti Generator Run " + i);
-                arr[i].run(10);
+                arr[i].run(10, 9999);
                 if (arr[i].absmax > max){
                     max = arr[i].absmax;
                     maxindex = i;
                     bestConsts = arr[i].consts;
                 }
+                System.out.println("COpti Generator Run " + i + " " + arr[i].absmaxstring.split(" ").length);
             }
             System.out.println(Arrays.toString(bestConsts));
-            System.out.println("[mut, imute, dmute, addtree, mutree, testree, shiftree, number of times, number to multiply in testTree]");
+            System.out.println("[mut, imute, dmute, addtree, mutree, shiftree]");
             
             
             //Combine/Mutate
@@ -54,6 +54,11 @@ public class ConstantOptimizer {
                             arr[i] = combine(arr[i], arr[0]);
                         }
                         arr[i].disp=false;
+                    } else {
+                        int[] constantstemp = arr[i].consts;
+                        arr[i] = new BaseMachine();
+                        arr[i].disp=false;
+                        arr[i].consts = constantstemp;
                     }
                     for (int b = 0; b < 5; b++){
                         int index = r.nextInt(BaseMachine.constslen);
