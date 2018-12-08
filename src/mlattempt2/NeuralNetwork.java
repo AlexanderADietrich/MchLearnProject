@@ -10,6 +10,10 @@ public class NeuralNetwork {
      * as I will not learn anything. Instead I am going develop
      * something efficient and effective given my own limitations.
      */
+    
+    /**
+     * Code folds for large arrays are a blessing
+     */
     private static final class DATA{
         public static long[] months = new long[]{
             //12,
@@ -77,6 +81,9 @@ public class NeuralNetwork {
     }
     public Random r = new Random();
     
+    /**
+     * The node contains weights, and a value.
+     */
     private class Node{
         /*public Node(Node[] prevs){
             init(prevs);
@@ -89,7 +96,7 @@ public class NeuralNetwork {
                 init(prevs);
             }
             
-            weights = new int[2];
+            weights = new double[2];
             weights[0] = r.nextInt(100);
             weights[1] = r.nextInt(100);
             this.inp=inp;
@@ -101,19 +108,38 @@ public class NeuralNetwork {
         }
         
         public long val(int weightNum){
-            return inp*weights[weightNum]/100;
+            return (long) (inp*weights[weightNum]/100);
         }
         public boolean hasPrevs = false;
         public long     inp;
         public Node[]   prevs;
         public Node[]   nexts;
-        public int[]    weights;//Between 0 and 100, divided by 100 for math
+        public double[]    weights;//Between 0 and 100, divided by 100 for math
     }
     
     public long error(long val, int c){
+        System.out.println(val + " versus " + DATA.test[c] + " at " + c);
         return (long) Math.abs(val-DATA.test[c]);
     }
     
+    public Node[] layerMaker(Node[] prev, Node[] current){
+        int len = prev.length*prev.length;
+        Node[] retVal = new Node[len];
+        long val;
+        int sent;
+        for (int i = 0; i < len; i++){
+            val = 0;
+            sent = 0;
+            for (int b = len/2; b != 0; b = b/2){
+                val = (long) (val + prev[sent].inp*prev[sent++].weights[i/b % 2]);
+            }
+            retVal[i] = new Node(val, prev);
+            System.arraycopy(current[i].weights, 0, retVal[i].weights, 0, current[i].weights.length);
+
+        }
+        return retVal;
+    }
+            
     public Node[] layerMaker(Node[] prev){
         
         //This algorithm works great
@@ -125,7 +151,7 @@ public class NeuralNetwork {
             val = 0;
             sent = 0;
             for (int b = len/2; b != 0; b = b/2){
-                val = val + prev[sent].inp*prev[sent++].weights[i/b % 2];
+                val = (long) (val + prev[sent].inp*prev[sent++].weights[i/b % 2]);
             }
             retVal[i] = new Node(val, prev);
         }
@@ -192,90 +218,323 @@ public class NeuralNetwork {
         long val1;
         long val2;
         long val3;
-        //get to local minimum of a weight
-        for (int c = 0; c < layers.length-1; c++){
-            for (int i = 0; i < layers[c].length; i++){
-                for (int w = 0; w < 2; w++){
-                    System.out.println("I: " + i + " W: " + w);
-                    while (true){//assumes that sp, sn, and s are the same
-                        layersp[c][i].weights[w]++;
-                        
-                        for (int g = c+1; g < layers.length; g++){
-                            layersp[g] = layerMaker(layersp[g-1]);
-                        }
+        for (int repeat = 0; repeat < 10; repeat++){
+            //get to local minimum of weights based on input dates and months (folds)
+            for (int datpos = 0; datpos < DATA.dates.length; datpos++){
+                layers[0][0].inp = DATA.dates[datpos];
+                layers[0][1].inp = DATA.months[datpos];
 
-                        layersn[c][i].weights[w]--;
-                        for (int g = c+1; g < layers.length; g++){
-                            layersn[g] = layerMaker(layersn[g-1]);
-                        }
+                layers[1] = layerMaker(layers[0], layers[1]);
+                layers[2] = layerMaker(layers[1], layers[2]);
+                layers[3] = layerMaker(layers[2], layers[3]);
 
-                        val2=0;//"middle" val
-                        for (Node n : layers[3]){
-                            val2 += n.inp;
-                        }
-                        val1=0;//"lesser" val
-                        for (Node n : layersn[3]){
-                            val1 += n.inp;
-                        }
-                        val3=0;//"greater" val
-                        for (Node n : layersp[3]){
-                            val3 += n.inp;
-                        }
 
-                        //Currently all three vals are the output of the networks
-                        //Switch it to be the error
-                        //System.out.println("VALS");
-                        //System.out.println(val1 + "\n" + val2 + "\n" + val3 + "\n");
+                long prevInac = Long.MAX_VALUE;
+                while (true){
+                    for (int c = 0; c < layers.length-1; c++){
+                        for (int i = 0; i < layers[c].length; i++){
+                            for (int w = 0; w < 2; w++){
+                                System.out.println("I: " + i + " W: " + w);
+                                while (true){//assumes that sp, sn, and s are the same
+                                    layersp[c][i].weights[w]+= 0.1;
+                                    if (layersp[c][i].weights[w] > 100.0) layersp[c][i].weights[w] = 100.0;
+                                    if (layersp[c][i].weights[w] < 0.0) layersp[c][i].weights[w] = 0.0;
 
-                        val1 = error(val1, 0);
-                        val2 = error(val2, 0);
-                        val3 = error(val3, 0);
+                                    for (int g = c+1; g < layers.length; g++){
+                                        layersp[g] = layerMaker(layersp[g-1], layersp[g]);
+                                    }
 
-                        //System.out.println("ERRORS");
-                        //System.out.println(val1 + "\n" + val2 + "\n" + val3 + "\n");
+                                    layersn[c][i].weights[w]-= 0.1;
+                                    if (layersn[c][i].weights[w] > 100.0) layersn[c][i].weights[w] = 100.0;
+                                    if (layersn[c][i].weights[w] < 0.0) layersn[c][i].weights[w] = 0.0;
+                                    
+                                    for (int g = c+1; g < layers.length; g++){
+                                        layersn[g] = layerMaker(layersn[g-1], layersn[g]);
+                                    }
 
-                        if (val3 > val2 && val1 > val2){// Bottom of valley
-                            //System.out.println("BROKE");
-                            break;
+                                    val2=0;//"middle" val
+                                    for (Node n : layers[3]){
+                                        val2 += n.inp;
+                                    }
+                                    val1=0;//"lesser" val
+                                    for (Node n : layersn[3]){
+                                        val1 += n.inp;
+                                    }
+                                    val3=0;//"greater" val
+                                    for (Node n : layersp[3]){
+                                        val3 += n.inp;
+                                    }
+
+                                    //Currently all three vals are the output of the networks
+                                    //Switch it to be the error
+                                    System.out.println("VALS");
+                                    System.out.println(val1 + "\n" + val2 + "\n" + val3 + "\n");
+
+                                    val1 = error(val1, datpos);
+                                    val2 = error(val2, datpos);
+                                    val3 = error(val3, datpos);
+
+                                    System.out.println("ERRORS");
+                                    System.out.println(val1 + "\n" + val2 + "\n" + val3 + "\n");
+
+                                    if (val3 > val2 && val1 > val2){// Bottom of valley
+                                        System.out.println("BROKE");
+                                        break;
+                                    }
+                                    else if (val3 < val2){//+ is closer to bottom of valley
+                                        System.out.println("RIGHT");
+                                        System.arraycopy(layersp, 0, layers, 0, layersp.length);
+                                        System.arraycopy(layersp, 0, layersn, 0, layersp.length);
+                                    } else if (val1 < val2){//- is closer to bottom of valley
+                                        System.out.println("LEFT");
+                                        System.arraycopy(layersn, 0, layers, 0, layersn.length);
+                                        System.arraycopy(layersn, 0, layersn, 0, layersn.length);
+                                    }
+                                    else if (val1 == val2 || val3 == val2){//plateau
+                                        break;
+                                    }
+                                }
+
+                            }
                         }
-                        else if (val3 < val2){//+ is closer to bottom of valley
-                            //System.out.println("RIGHT");
-                            System.arraycopy(layersp, 0, layers, 0, layersp.length);
-                            System.arraycopy(layersp, 0, layersn, 0, layersp.length);
-                        } else if (val1 < val2){//- is closer to bottom of valley
-                            //System.out.println("LEFT");
-                            System.arraycopy(layersn, 0, layers, 0, layersn.length);
-                            System.arraycopy(layersn, 0, layersn, 0, layersn.length);
-                        }
-                        //else if (val1 == val2 && val3 == val2){//plateau
-                            //break;
-                        //}
                     }
                     long currentVal = 0;
                     for (Node n : layers[3]){
                         currentVal += n.inp;
                     }
                     System.out.println("Current Innaccuracy " + Math.abs(DATA.test[0]*1.0 - currentVal*1.0)/(DATA.test[0]*1.0));
+
+                    System.out.println("Current: " + (long) Math.abs(DATA.test[0] - currentVal));
+                    System.out.println("Prev: " + prevInac);
+                    if ((long) Math.abs(DATA.test[0] - currentVal) == prevInac) break;
+                    else prevInac = (long) Math.abs(DATA.test[0]-currentVal);
                 }
             }
         }
+        long finalError = 0;
+        long finalCurrent;
+        long minError = Long.MAX_VALUE;
+        long maxError = Long.MIN_VALUE;
+        results = new long[DATA.dates.length];
         
-        long finalVal = 0;
-        for (Node n : layers[3]){
-            finalVal += n.inp;
+        for (int datPos = 0; datPos < DATA.dates.length; datPos++){
+            finalCurrent = 0;
+            layers[0][0].inp = DATA.dates[datPos];
+            layers[0][1].inp = DATA.months[datPos];
+
+            layers[1] = layerMaker(layers[0], layers[1]);
+            layers[2] = layerMaker(layers[1], layers[2]);
+            layers[3] = layerMaker(layers[2], layers[3]);
+            for (Node n : layers[3]){
+                finalCurrent += n.inp;
+            }
+            results[datPos] = finalCurrent;
+            long etemp = error(finalCurrent, datPos);
+            finalError += etemp;
+            if (etemp < minError) minError = etemp;
+            if (etemp > maxError) maxError = etemp;
+        }
+        System.out.println("Average error " + (finalError/DATA.dates.length));
+        System.out.println("Max error     " + maxError);
+        System.out.println("Min error     " + minError);
+
+        for (int b = 0; b < layers.length; b++){
+            System.out.print("LAYER" + b + ": ");
+            for (int i = 0; i < layers[b].length; i++){
+                System.out.print("(n " + i + " ");
+                for (int w = 0; w < layers[b][i].weights.length; w++){
+                    System.out.print("w" + w + "=" + layers[b][i].weights[w] + " ");
+                }
+                System.out.print(") ");
+            }
+            System.out.println();
+        }
+    }
+    
+    public void altRun(){
+        //INIT
+        Node[] layer1 = new Node[2];
+        layer1[0] = new Node(DATA.dates[0], null);
+        layer1[1] = new Node(DATA.months[0], null);
+        Node[] layer2 = layerMaker(layer1);
+        Node[] layer3 = layerMaker(layer2);
+        Node[] layer4 = layerMaker(layer3);
+        
+        Node[][] layers = new Node[][]{layer1, layer2, layer3, layer4};
+        Node[][] layersp= new Node[4][];
+        Node[][] layersn= new Node[4][];
+        
+        for (int i = 0; i < 4; i++){
+            layersp[i] = new Node[layers[i].length];
+            layersn[i] = new Node[layers[i].length];
+            System.arraycopy(layers[i], 0, layersp[i], 0, layers[i].length);
+            System.arraycopy(layers[i], 0, layersn[i], 0, layers[i].length);
         }
         
-        System.out.println("Final Innaccuracy " + Math.abs(DATA.test[0]*1.0 - finalVal*1.0)/(DATA.test[0]*1.0));
         
         
         //DISPLAY
+        for (Node n : layer1){
+            System.out.println(n.inp);
+        }
+        System.out.println();
+        for (Node n : layer2){
+            System.out.println(n.inp);
+        }
+        System.out.println();
+        for (Node n : layer3){
+            System.out.println(n.inp);
+        }
+        for (Node n : layer4){
+            System.out.println(n.inp);
+        }
+        System.out.println();
         
-        //EXTRACT
-        
-        //DISPLAY
         
         
+        //OPTIMIZE
+        long val1;
+        long val2;
+        long val3;
+        for (int repeat = 0; repeat < 10; repeat++){
+            //get to local minimum of weights
+            long prevInac = Long.MAX_VALUE;
+            for (int spiral = 10; spiral > 0; spiral--){
+                for (int c = 0; c < layers.length-1; c++){
+                    for (int i = 0; i < layers[c].length; i++){
+                        for (int w = 0; w < 2; w++){
+                            System.out.println("I: " + i + " W: " + w);
+                            while (true){//assumes that sp, sn, and s are the same
+                                layersp[c][i].weights[w]+= 0.1*spiral;
+                                if (layersp[c][i].weights[w] > 100.0) layersp[c][i].weights[w] = 100.0;
+                                if (layersp[c][i].weights[w] < 0.0) layersp[c][i].weights[w] = 0.0;
+
+                                for (int g = c+1; g < layers.length; g++){
+                                    layersp[g] = layerMaker(layersp[g-1], layersp[g]);
+                                }
+
+                                layersn[c][i].weights[w]-= 0.1*spiral;
+                                if (layersn[c][i].weights[w] > 100.0) layersn[c][i].weights[w] = 100.0;
+                                if (layersn[c][i].weights[w] < 0.0) layersn[c][i].weights[w] = 0.0;
+
+                                for (int g = c+1; g < layers.length; g++){
+                                    layersn[g] = layerMaker(layersn[g-1], layersn[g]);
+                                }
+
+                                val1 = 0; 
+                                val2 = 0;
+                                val3 = 0;
+
+                                Node[][][] superLayers = new Node[][][]{layersn, layers, layersp};
+
+                                long runCurrent;
+                                long currentError;
+                                int sent = 0;
+                                for (Node[][] glayers : superLayers){
+                                    currentError = 0;
+                                    for (int datPos = 0; datPos < DATA.dates.length; datPos++){
+                                        runCurrent = 0;
+                                        glayers[0][0].inp = DATA.dates[datPos];
+                                        glayers[0][1].inp = DATA.months[datPos];
+
+                                        glayers[1] = layerMaker(layers[0], layers[1]);
+                                        glayers[2] = layerMaker(layers[1], layers[2]);
+                                        glayers[3] = layerMaker(layers[2], layers[3]);
+
+                                        for (Node n : glayers[3]){
+                                            runCurrent += n.inp;
+                                        }
+                                        currentError += error(runCurrent, datPos);
+                                    }
+                                    if (sent == 0){
+                                        val1 = currentError;
+                                    } else if (sent == 1){
+                                        val2 = currentError;
+                                    } else if (sent == 2){
+                                        val3 = currentError;
+                                    }
+                                    sent++;
+                                }
+
+
+
+                                System.out.println("ERRORS");
+                                System.out.println(val1 + "\n" + val2 + "\n" + val3 + "\n");
+
+                                if (val3 > val2 && val1 > val2){// Bottom of valley
+                                    System.out.println("BROKE");
+                                    break;
+                                }
+                                else if (val3 < val2){//+ is closer to bottom of valley
+                                    System.out.println("RIGHT");
+                                    System.arraycopy(layersp, 0, layers, 0, layersp.length);
+                                    System.arraycopy(layersp, 0, layersn, 0, layersp.length);
+                                } else if (val1 < val2){//- is closer to bottom of valley
+                                    System.out.println("LEFT");
+                                    System.arraycopy(layersn, 0, layers, 0, layersn.length);
+                                    System.arraycopy(layersn, 0, layersn, 0, layersn.length);
+                                }
+                                else if (val1 == val2 || val3 == val2){//plateau
+                                    break;
+                                }
+                            }
+
+                        }
+                    }
+                }
+                long currentVal = 0;
+                for (Node n : layers[3]){
+                    currentVal += n.inp;
+                }
+                System.out.println("Current Innaccuracy " + Math.abs(DATA.test[0]*1.0 - currentVal*1.0)/(DATA.test[0]*1.0));
+
+                System.out.println("Current: " + (long) Math.abs(DATA.test[0] - currentVal));
+                System.out.println("Prev: " + prevInac);
+                prevInac = (long) Math.abs(DATA.test[0]-currentVal);
+            }
+        }
+        
+        long finalError = 0;
+        long finalCurrent;
+        long minError = Long.MAX_VALUE;
+        long maxError = Long.MIN_VALUE;
+        results = new long[DATA.dates.length];
+        
+        for (int datPos = 0; datPos < DATA.dates.length; datPos++){
+            finalCurrent = 0;
+            layers[0][0].inp = DATA.dates[datPos];
+            layers[0][1].inp = DATA.months[datPos];
+
+            layers[1] = layerMaker(layers[0], layers[1]);
+            layers[2] = layerMaker(layers[1], layers[2]);
+            layers[3] = layerMaker(layers[2], layers[3]);
+            for (Node n : layers[3]){
+                finalCurrent += n.inp;
+            }
+            results[datPos] = finalCurrent;
+            long etemp = error(finalCurrent, datPos);
+            finalError += etemp;
+            if (etemp < minError) minError = etemp;
+            if (etemp > maxError) maxError = etemp;
+        }
+        System.out.println("Average error " + (finalError/DATA.dates.length));
+        System.out.println("Max error     " + maxError);
+        System.out.println("Min error     " + minError);
+
+        for (int b = 0; b < layers.length; b++){
+            System.out.print("LAYER" + b + ": ");
+            for (int i = 0; i < layers[b].length; i++){
+                System.out.print("(n " + i + " ");
+                for (int w = 0; w < layers[b][i].weights.length; w++){
+                    System.out.print("w" + w + "=" + layers[b][i].weights[w] + " ");
+                }
+                System.out.print(") ");
+            }
+            System.out.println();
+        }
     }
+    
+    public long[] results;
     
     /**
      * 

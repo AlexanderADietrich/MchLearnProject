@@ -87,6 +87,8 @@ public class BaseMachine {
             10, 
             6
         };
+        
+        
         /*test = new long[]{//high of seattle*1000
             //45,
             50000,
