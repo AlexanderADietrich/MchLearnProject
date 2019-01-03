@@ -16,10 +16,11 @@ public class GeneticRefiner {
     public long[] inputs;
     public Random r = new Random();
     public simpGenerator[] gens;
+    public static final int gensLen = 5;
     public GeneticRefiner(long[] inputs){
         this.inputs=inputs;
-        this.gens = new simpGenerator[10];
-        for (int i = 0; i < 10; i++){
+        this.gens = new simpGenerator[gensLen];
+        for (int i = 0; i < gensLen; i++){
             gens[i] = new simpGenerator();
             for (int c = 0; c < 5; c++)
                 gens[i].mutate();
@@ -70,8 +71,9 @@ public class GeneticRefiner {
                 testGenes = testGenes + s + " ";
             }
             simpGenerator testGenerator = new simpGenerator(testGenes);
-            if (testGenerator.errorTotal < maxError){
-                maxError = testGenerator.errorTotal;
+
+            if (testGenerator.getTotErr() < maxError){
+                maxError = testGenerator.getTotErr();
                 bestGenes = testGenerator.genes;
             }
             sent++;
@@ -90,8 +92,8 @@ public class GeneticRefiner {
                 testGenes = testGenes + s + " ";
             }
             simpGenerator testGenerator = new simpGenerator(testGenes);
-            if (testGenerator.errorTotal < maxError){
-                maxError = testGenerator.errorTotal;
+            if (testGenerator.getTotErr() < maxError){
+                maxError = testGenerator.getTotErr();
                 bestGenes = testGenerator.genes;
             }
         }
@@ -104,8 +106,8 @@ public class GeneticRefiner {
             copy = genes + "";
             copy = genes + DATA.operators[i];
             simpGenerator testGenerator = new simpGenerator(copy);
-            if (testGenerator.errorTotal < maxError){
-                maxError = testGenerator.errorTotal;
+            if (testGenerator.getTotErr() < maxError){
+                maxError = testGenerator.getTotErr();
                 bestGenes = testGenerator.genes;
             }
         }
@@ -128,21 +130,22 @@ public class GeneticRefiner {
                 System.out.print(  "Day:   \t" + DATA.dates[datPos] + " ");
                 System.out.print(  "Input: \t" + inputs[datPos] + " "); 
                 System.out.print(  "Val:   \t" + gens[ind].getVal(datPos) + " ");
-                System.out.print(  "Err:   \t" + (gens[ind].getErr(datPos)*1.0)/(DATA.test[datPos]*1.0) + " ");
+                System.out.print(  "Err:   \t" + gens[ind].getErr(datPos) + " ");
                 System.out.println("Actual:\t" + DATA.test[datPos]);
             }
             
             
             //mutate/combine
             for (int i = 0; i < gens.length; i++){
+                
                 if (i != ind){
                     if (r.nextBoolean() && r.nextBoolean()){
-                        gens[i] = new simpGenerator(combine(gens[i].genes, gens[(i+2)%10].genes));
+                        gens[i] = new simpGenerator(combine(gens[i].genes, gens[(i+2)%gensLen].genes));
                     }
                     if (Math.random() < 0.05){
                         gens[i] = new simpGenerator();
                     }
-                    for (int d = 0; d < 5; d++){
+                    for (int d = 0; d < 10; d++){
                         gens[i].mutate();
                         if (r.nextBoolean()){
                             gens[i].delMutate();
@@ -153,16 +156,29 @@ public class GeneticRefiner {
                     }
                 }
                 
-                if (Math.random() < 0.01){
-                    gens[(ind+1)%10] = new simpGenerator(maxDelete(gens[ind].genes, gens[ind].errorTotal));
-                }
+                if (Math.random() < 0.1)
+                    gens[i] = new simpGenerator(maxDelete(gens[ind].genes, gens[ind].totError));
                 
-                else if (Math.random() < 0.2){
-                    gens[(ind+1)%10] = new simpGenerator(logDelete(gens[ind].genes, gens[ind].errorTotal));
+                /*
+                if (Math.random() < 0.2)
+                    gens[i] = new simpGenerator(maxDelete(gens[ind].genes, gens[ind].totError));
+                if (Math.random() < 0.2)
+                    gens[i] = new simpGenerator(maxMutate(gens[ind].genes, gens[ind].totError));
+                if (Math.random() < 0.2)
+                    gens[i] = new simpGenerator(logDelete(gens[ind].genes, gens[ind].totError));
+                */
+                
+                
+                /*
+                if (Math.random() < 0.05){
+                    gens[(ind+1)%gensLen] = new simpGenerator(maxDelete(gens[ind].genes, gens[ind].totError));
                 }
-                else if (Math.random() < 0.3){
-                    gens[(ind+2)%10] = new simpGenerator(maxMutate(gens[ind].genes, gens[ind].errorTotal));
+                if (Math.random() < 0.4){
+                    gens[(ind+1)%gensLen] = new simpGenerator(logDelete(gens[ind].genes, gens[ind].totError));
                 }
+                if (Math.random() < 0.4){
+                    gens[(ind+1)%gensLen] = new simpGenerator(maxMutate(gens[ind].genes, gens[ind].totError));
+                }*/
             }
         }
     }
@@ -177,7 +193,7 @@ public class GeneticRefiner {
         String genes;
         long[] vals;
         long[] errors;
-        long errorTotal;
+        long totError;
         boolean changed;
         
         public simpGenerator(String s){
@@ -222,10 +238,10 @@ public class GeneticRefiner {
         }
         public long getTotErr(){
             if (changed == true) update();
-            return errorTotal;
+            return totError;
         }
         public void update(){
-            errorTotal = 0;
+            totError = 0;
             for (int i = 0; i < DATA.dates.length; i++){
                 vals[i] = inputs[i];
                 String[] arrtemp = genes.split(" ");
@@ -234,9 +250,9 @@ public class GeneticRefiner {
                     vals[i] = handleOperator(vals[i], i, s);
                     //System.out.println("Final: " + vals[i] + "\n");
                 }
-                errors[i] = (long) Math.abs(vals[i]-DATA.test[i]);
+                errors[i] = (long) (100*Math.abs(vals[i]-DATA.test[i])/DATA.test[i]);
                 if (errors[i] < 0) System.out.println(vals[i] + " " + DATA.test[i] + "?");
-                errorTotal += errors[i];
+                totError += errors[i];
             }
             changed = false;
         }

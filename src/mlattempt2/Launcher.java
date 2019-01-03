@@ -11,17 +11,22 @@ package mlattempt2;
  * @author voice
  */
 public class Launcher {
+    
+    public static void launchNN2(){
+        NeuralNetworkII network = new NeuralNetworkII();
+        network.runLvl4();
+    }
     /**
      * The "neural network" I built can only output what's essentially a linear
      * regression, which is useful, but not as accurate as I would like.
      */
-    public void launchHybrid(){
+    public static void launchHybrid(){
         NeuralNetwork n = new NeuralNetwork();
         n.altRun();
         GeneticRefiner g = new GeneticRefiner(n.results);
         g.run(10000);
     }
-    public void launchGenetic(){
+    public static void launchGenetic(){
         ConstantOptimizer copti = new ConstantOptimizer();
         copti.bestConsts = new int[]{5, 1, 1, 5, 1, 3};
         //The constant optimizer is slow and unreliable right now.
@@ -46,6 +51,6 @@ public class Launcher {
         machine.run(10000, 100);
     }
     public static void main(String[] args){
-        
+        launchNN2();
     }
 }

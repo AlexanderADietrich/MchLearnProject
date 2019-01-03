@@ -4,11 +4,15 @@ import java.util.Random;
 
 public class NeuralNetwork {
     /*
-     * I have not yet been instr anyone can hit ctrl-c ctrl-vucted, nor have i yet taught myself linear alg-
+     * I have not yet been instructed, nor have i yet taught myself linear alg-
      * ebra. Due to this limitation I am not going to attempt to copy the 
      * hyper-efficient algorithms that have been developed for neural networks,
      * as I will not learn anything. Instead I am going develop
      * something efficient and effective given my own limitations.
+    
+    EDIT: I've learned not to doubt myself as much, as I really didn't need li-
+    near algebra. The derivation of how gradient descent by derivative of a 
+    specific weight only seems to require knowledge up to calculus III.
      */
     
     /**
