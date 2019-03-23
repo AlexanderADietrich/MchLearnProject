@@ -11,10 +11,8 @@ package mlattempt2;
  * @author voice
  */
 public class Launcher {
-    
     public static void launchNN2(){
-        NeuralNetworkII network = new NeuralNetworkII();
-        network.runLvl4();
+        WebNetwork.run();
     }
     /**
      * The "neural network" I built can only output what's essentially a linear
