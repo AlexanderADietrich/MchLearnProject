@@ -15,6 +15,8 @@ import java.util.Random;
  */
 public class NeuralNetworkII {
     /**
+     * //////////////   MADE OBSOLETE BY NEURAL NETWORK CLEAN   //////////////
+     * 
      * I've done some more study on neural networks and I'd like to make
      * a more "traditional" one.
      * 
