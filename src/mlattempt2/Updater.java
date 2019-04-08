@@ -15,9 +15,14 @@ public class Updater {
     public class CalcThread implements Runnable
     {
         public Thread t;
+        public String ID;
         public CalcThread(Node[] nodes, int start, int stop)
         {
-            this.nodes = nodes;
+            ID = Math.random()+"";
+            Node[] temp = new Node[stop-start];
+            for (int i = 0; i < temp.length; i++)
+                temp[i] = nodes[start+i];
+            this.nodes = temp;
             this.start = start;
             this.stop = stop;
         }
@@ -36,10 +41,10 @@ public class Updater {
         {
             if (t == null)
             {
-                t = new Thread(this, Math.random()+"");
+                t = new Thread(this, ID);
                 t.start();
             }
-            for (int i = start; i < stop; i++)
+            for (int i = 0; i < nodes.length; i++)
                 nodes[i].feedForward();
         }
     }

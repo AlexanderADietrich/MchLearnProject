@@ -30,18 +30,14 @@ public class NeuralNetworkTest {
         }
         
         NN network;
-        network = new NN(inp, out, 2, 16, false);
-        for (int i = 0; i <= 1000; i++){
-            System.out.println((i+1) + "/1000");
+        network = new NN(inp, out, 3, 3, false);
+        for (int i = 0; i <= 100; i++){
             network.updateWeights();
-            if (i % 100 == 0)
-            {
-                network.disp();
-                System.out.println("INP\tOUT\tRES");
-                for (int r = 1; r < inputs.length; r+=10)
-                    System.out.println(inputs[r]+"\t"+outputs[r]+"\t"+network.calc(new double[]{inputs[r], outputs[r-1]})[0]);
-            }
         }
+        network.disp();
+        System.out.println("INP\tOUT\tRES");
+        for (int r = 1; r < inputs.length; r+=10)
+            System.out.println(inputs[r]+"\t"+outputs[r]+"\t"+network.calc(new double[]{inputs[r], outputs[r-1]})[0]);
     }
     
 }
